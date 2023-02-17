@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="select_file_btn">
+   <widget class="QPushButton" name="select_txt_btn">
     <property name="geometry">
      <rect>
       <x>90</x>
@@ -27,7 +27,7 @@
      <string>Выбрать файл</string>
     </property>
    </widget>
-   <widget class="QLabel" name="selected_file_lbl">
+   <widget class="QLabel" name="selected_txt_lbl">
     <property name="geometry">
      <rect>
       <x>80</x>
@@ -40,17 +40,69 @@
      <string>Выбран файл</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="write_btn">
+   <widget class="QPushButton" name="write_new_btn">
     <property name="geometry">
      <rect>
       <x>400</x>
       <y>110</y>
-      <width>101</width>
+      <width>131</width>
       <height>41</height>
      </rect>
     </property>
     <property name="text">
-     <string>Записать</string>
+     <string>Записать в новый</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="file_name_lineEdit">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>160</y>
+      <width>113</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>logs &lt;timestamp&gt;</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="select_existing_excel_btn">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>350</y>
+      <width>181</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Выбрать существующий</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="write_existing_btn">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>420</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Записать в сущестующий</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="selected_xlsx_lbl">
+    <property name="geometry">
+     <rect>
+      <x>600</x>
+      <y>340</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Выбран файл</string>
     </property>
    </widget>
   </widget>

@@ -2,6 +2,8 @@ import sys
 import os
 from math import pi
 from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
+from openpyxl.utils import get_column_letter
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 from PyQt5 import QtGui as qtg
@@ -16,31 +18,67 @@ class MainWindow(base_class):
         self.connect_buttons()
         
     def connect_buttons(self):
-        self.ui.select_file_btn.clicked.connect(self.load_catalog)
-        self.ui.write_btn.clicked.connect(self.write_button_pressed)
+        self.ui.select_txt_btn.clicked.connect(lambda: self.load_file('Txt','txt'))
+        self.ui.select_existing_excel_btn.clicked.connect(lambda: self.load_file('Excel','xlsx'))
+        self.ui.write_new_btn.clicked.connect(self.write_new_button_pressed)
+        # self.ui.write_existing_btn.clicked.connect()
+    # def load_txt(self):
+    #     file_path = qtw.QFileDialog.getOpenFileName(self, 'Open File',filter="Txt (*.txt)")
+    #     if not file_path:
+    #         return None
+    #     self.file_path = file_path[0]
+        
+    #     selected_file_name = os.path.basename(self.file_path)
+    #     self.ui.selected_txt_lbl.setText(f'Выбран файл\n{selected_file_name}')
+    # def load_excel(self):
+    #     file_path = qtw.QFileDialog.getOpenFileName(self, 'Open File',filter="Excel (*.xlsx)")
 
-    def load_catalog(self):
-        file_path = qtw.QFileDialog.getOpenFileName(self, 'Open File',filter="Txt (*.txt)")
+
+    def load_file(self, format, extenion):
+
+        file_path = qtw.QFileDialog.getOpenFileName(self, 'Open File',filter=f"{format} (*.{extenion})")
         if not file_path:
             return None
-        self.file_path = file_path[0]
         
-        selected_file_name = os.path.basename(self.file_path)
-        self.ui.selected_file_lbl.setText(f'Выбран файл\n{selected_file_name}')
-    def write_button_pressed(self):
+        selected_file_name = os.path.basename(file_path[0])
+        if format == 'Excel':
+            print('here')
+            print(selected_file_name)
+            self.ui.selected_xlsx_lbl.setText(f'Выбран файл\n{selected_file_name}')
+            self.excel_file_path = file_path[0]
+        else:
+            self.ui.selected_txt_lbl.setText(f'Выбран файл\n{selected_file_name}')
+            self.txt_file_path = file_path[0]
+    def write_new_button_pressed(self):
         logs = self.compose_logs()
-        print(logs)
+        
         wb = Workbook()
         ws = wb.active
-        for row in logs:
-            ws.append(row)
-        wb.save('doc.xlsx')
+        alignment = Alignment(horizontal='center')
+        for row in ws.iter_rows(min_row = 1, max_row = len(logs), min_col = 3, max_col = len(logs[0])+2):
+            for cell in row:
+                cell.value = logs[cell.row-1][cell.column-3]
+                cell.alignment = alignment
+        self.set_styles(ws,len(logs[0]))
+        wb.save(f'{self.ui.file_name_lineEdit.text()}.xlsx')
+    def set_styles(self,ws, length):
+        bold = Font(color="00000000", bold  = True)
+        
+        for row in ws.iter_rows(min_row = 1, max_row = 1, min_col=3, max_col = 2+length):
+            for cell in row:
+                cell.font = bold
+                ws.column_dimensions[get_column_letter(cell.column)].width = 12
+                
+        
+        
+
     def compose_logs(self):
         logs = [['Date', 'Origin time', 'Lat', 'Lon', 'Depth', 'DepthMIN','DepthMAX', 'M', 'AzMajor', 'Rminor', 'Rmajor', 'S', 'N stations']]
-        with open(self.file_path,'r',encoding='utf-8') as file:
+        with open(self.txt_file_path,'r',encoding='utf-8') as file:
             text = file.read()
             events = text.split('END EVENT')
             events.pop()
+
             for event in events:
                 event_log = []
                 event = event.strip()
@@ -60,7 +98,8 @@ class MainWindow(base_class):
                 AzMajor, Rminor, Rmajor = [d.split('=')[1] for d in azimuth.split()]
                 S = float(Rminor) * float(Rmajor) * pi
                 Nstat = event[event.find('NSTAT'):event.find('NPHASES')-1].split('=')[1]
-                event_log = [date,time.replace('.',':'),round(lat,3),round(lon,3), depth, depthmin, depthmax, M, AzMajor, Rminor, Rmajor, S, Nstat]
+                event_log = [date,time.replace('.',':'),round(lat,3),round(lon,3), int(depth), int(depthmin), int(depthmax), M, float(AzMajor), float(Rminor), float(Rmajor), round(S,2), int(Nstat)]
+                
                 logs.append(event_log)
         return logs
 
