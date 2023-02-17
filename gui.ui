@@ -63,7 +63,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>logs &lt;timestamp&gt;</string>
+     <string>logs timestamp</string>
     </property>
    </widget>
    <widget class="QPushButton" name="select_existing_excel_btn">

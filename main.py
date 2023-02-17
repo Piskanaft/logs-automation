@@ -1,7 +1,7 @@
 import sys
 import os
 from math import pi
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
 from PyQt5 import QtWidgets as qtw
@@ -21,18 +21,8 @@ class MainWindow(base_class):
         self.ui.select_txt_btn.clicked.connect(lambda: self.load_file('Txt','txt'))
         self.ui.select_existing_excel_btn.clicked.connect(lambda: self.load_file('Excel','xlsx'))
         self.ui.write_new_btn.clicked.connect(self.write_new_button_pressed)
-        # self.ui.write_existing_btn.clicked.connect()
-    # def load_txt(self):
-    #     file_path = qtw.QFileDialog.getOpenFileName(self, 'Open File',filter="Txt (*.txt)")
-    #     if not file_path:
-    #         return None
-    #     self.file_path = file_path[0]
-        
-    #     selected_file_name = os.path.basename(self.file_path)
-    #     self.ui.selected_txt_lbl.setText(f'Выбран файл\n{selected_file_name}')
-    # def load_excel(self):
-    #     file_path = qtw.QFileDialog.getOpenFileName(self, 'Open File',filter="Excel (*.xlsx)")
-
+        self.ui.write_existing_btn.clicked.connect(self.write_existing_btn_pressed)
+   
 
     def load_file(self, format, extenion):
 
@@ -42,8 +32,7 @@ class MainWindow(base_class):
         
         selected_file_name = os.path.basename(file_path[0])
         if format == 'Excel':
-            print('here')
-            print(selected_file_name)
+            
             self.ui.selected_xlsx_lbl.setText(f'Выбран файл\n{selected_file_name}')
             self.excel_file_path = file_path[0]
         else:
@@ -61,6 +50,20 @@ class MainWindow(base_class):
                 cell.alignment = alignment
         self.set_styles(ws,len(logs[0]))
         wb.save(f'{self.ui.file_name_lineEdit.text()}.xlsx')
+
+    def write_existing_btn_pressed(self):
+        logs = self.compose_logs()
+        logs.pop(0)
+        wb = load_workbook(self.excel_file_path)
+        sh = wb.active
+        alignment = Alignment(horizontal='center')
+        end_of_old_logs = sh.max_row
+        for row in sh.iter_rows(min_row = end_of_old_logs+1, max_row = len(logs) + end_of_old_logs, min_col = 3, max_col = len(logs[0])+2):
+            for cell in row:
+                cell.value = logs[cell.row-1-end_of_old_logs][cell.column-3]
+                cell.alignment = alignment
+        wb.save(os.path.basename(self.excel_file_path))
+
     def set_styles(self,ws, length):
         bold = Font(color="00000000", bold  = True)
         

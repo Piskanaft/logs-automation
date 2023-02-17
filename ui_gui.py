@@ -58,7 +58,7 @@ class Ui_MainWindow(object):
         self.select_txt_btn.setText(QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u0444\u0430\u0439\u043b", None))
         self.selected_txt_lbl.setText(QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0431\u0440\u0430\u043d \u0444\u0430\u0439\u043b", None))
         self.write_new_btn.setText(QCoreApplication.translate("MainWindow", u"\u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c \u0432 \u043d\u043e\u0432\u044b\u0439", None))
-        self.file_name_lineEdit.setText(QCoreApplication.translate("MainWindow", u"logs <timestamp>", None))
+        self.file_name_lineEdit.setText(QCoreApplication.translate("MainWindow", u"logs timestamp", None))
         self.select_existing_excel_btn.setText(QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u044e\u0449\u0438\u0439", None))
         self.write_existing_btn.setText(QCoreApplication.translate("MainWindow", u"\u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c \u0432 \u0441\u0443\u0449\u0435\u0441\u0442\u0443\u044e\u0449\u0438\u0439", None))
         self.selected_xlsx_lbl.setText(QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0431\u0440\u0430\u043d \u0444\u0430\u0439\u043b", None))
