@@ -64,7 +64,7 @@ class Ui_MainWindow(object):
         self.existing_done_tick.setMaximumSize(QSize(50, 50))
         self.existing_done_tick.setSizeIncrement(QSize(1, 1))
         self.existing_done_tick.setBaseSize(QSize(0, 0))
-        self.existing_done_tick.setPixmap(QPixmap(u"../../../icons/icons/tick.png"))
+        self.existing_done_tick.setPixmap(QPixmap(u"tick.png"))
         self.existing_done_tick.setScaledContents(True)
 
         self.gridLayout.addWidget(self.existing_done_tick, 5, 3, 1, 1)
@@ -92,7 +92,7 @@ class Ui_MainWindow(object):
         self.new_done_tick.setSizeIncrement(QSize(1, 1))
         self.new_done_tick.setBaseSize(QSize(1, 1))
         self.new_done_tick.setLineWidth(0)
-        self.new_done_tick.setPixmap(QPixmap(u"../../../icons/icons/tick.png"))
+        self.new_done_tick.setPixmap(QPixmap(u"tick.png"))
         self.new_done_tick.setScaledContents(True)
 
         self.gridLayout.addWidget(self.new_done_tick, 0, 3, 1, 1)
