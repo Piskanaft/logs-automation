@@ -8,6 +8,8 @@ from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 from PyQt5 import QtGui as qtg
 from PyQt5 import uic
+from datetime import datetime
+import time
 
 MyWindow, base_class = uic.loadUiType('./gui.ui')
 class MainWindow(base_class):
@@ -15,7 +17,14 @@ class MainWindow(base_class):
         super().__init__(*args,**kwargs)
         self.ui = MyWindow()
         self.ui.setupUi(self)
+        self.ui.new_done_tick.setHidden(True)
+        self.ui.existing_done_tick.setHidden(True)
         self.connect_buttons()
+
+        self.timer=qtc.QTimer()
+        self.timer.timeout.connect(lambda: self.ui.new_done_tick.setHidden(True))
+        self.timer.timeout.connect(lambda: self.ui.existing_done_tick.setHidden(True))
+        
         
     def connect_buttons(self):
         self.ui.select_txt_btn.clicked.connect(lambda: self.load_file('Txt','txt'))
@@ -33,12 +42,15 @@ class MainWindow(base_class):
         selected_file_name = os.path.basename(file_path[0])
         if format == 'Excel':
             
-            self.ui.selected_xlsx_lbl.setText(f'Выбран файл\n{selected_file_name}')
+            self.ui.selected_xlsx_lbl.setText(f'Excel выбран:\n{selected_file_name}')
             self.excel_file_path = file_path[0]
         else:
-            self.ui.selected_txt_lbl.setText(f'Выбран файл\n{selected_file_name}')
+            self.ui.selected_txt_lbl.setText(f'Txt выбран:\n{selected_file_name}')
             self.txt_file_path = file_path[0]
     def write_new_button_pressed(self):
+        if not hasattr(self, 'txt_file_path'):
+            print('skip')
+            return None
         logs = self.compose_logs()
         
         wb = Workbook()
@@ -49,9 +61,20 @@ class MainWindow(base_class):
                 cell.value = logs[cell.row-1][cell.column-3]
                 cell.alignment = alignment
         self.set_styles(ws,len(logs[0]))
-        wb.save(f'{self.ui.file_name_lineEdit.text()}.xlsx')
+        if self.ui.file_name_lineEdit.text() == 'logs timestamp':
+            
+            wb.save(f'logs {datetime.now().strftime("%d.%m.%Y %H-%M-%S")}.xlsx')
+        else:
+            wb.save(f'{self.ui.file_name_lineEdit.text()}.xlsx')
+        self.ui.new_done_tick.setHidden(False)
+        self.timer.start(1000)
+        
+        
 
     def write_existing_btn_pressed(self):
+        if not hasattr(self, 'excel_file_path'):
+            print('skip')
+            return None
         logs = self.compose_logs()
         logs.pop(0)
         wb = load_workbook(self.excel_file_path)
@@ -63,6 +86,8 @@ class MainWindow(base_class):
                 cell.value = logs[cell.row-1-end_of_old_logs][cell.column-3]
                 cell.alignment = alignment
         wb.save(os.path.basename(self.excel_file_path))
+        self.ui.existing_done_tick.setHidden(False)
+        self.timer.start(1000)
 
     def set_styles(self,ws, length):
         bold = Font(color="00000000", bold  = True)
@@ -101,7 +126,7 @@ class MainWindow(base_class):
                 AzMajor, Rminor, Rmajor = [d.split('=')[1] for d in azimuth.split()]
                 S = float(Rminor) * float(Rmajor) * pi
                 Nstat = event[event.find('NSTAT'):event.find('NPHASES')-1].split('=')[1]
-                event_log = [date,time.replace('.',':'),round(lat,3),round(lon,3), int(depth), int(depthmin), int(depthmax), M, float(AzMajor), float(Rminor), float(Rmajor), round(S,2), int(Nstat)]
+                event_log = [date,time.replace('.',':',1),round(lat,3),round(lon,3), int(depth), int(depthmin), int(depthmax), M, float(AzMajor), float(Rminor), float(Rmajor), round(S,2), int(Nstat)]
                 
                 logs.append(event_log)
         return logs
