@@ -17,20 +17,24 @@ class MainWindow(base_class):
         super().__init__(*args,**kwargs)
         self.ui = MyWindow()
         self.ui.setupUi(self)
+        
+        self.initialize()
+
+        
+    def initialize(self):
         self.ui.new_done_tick.setHidden(True)
         self.ui.existing_done_tick.setHidden(True)
-        self.connect_buttons()
-
         self.timer=qtc.QTimer()
         self.timer.timeout.connect(lambda: self.ui.new_done_tick.setHidden(True))
         self.timer.timeout.connect(lambda: self.ui.existing_done_tick.setHidden(True))
-        
-        
-    def connect_buttons(self):
+
+        #BUTTONS
         self.ui.select_txt_btn.clicked.connect(lambda: self.load_file('Txt','txt'))
         self.ui.select_existing_excel_btn.clicked.connect(lambda: self.load_file('Excel','xlsx'))
         self.ui.write_new_btn.clicked.connect(self.write_new_button_pressed)
         self.ui.write_existing_btn.clicked.connect(self.write_existing_btn_pressed)
+
+
    
 
     def load_file(self, format, extenion):
@@ -114,7 +118,11 @@ class MainWindow(base_class):
                 splitted = event.split('\n')
                 dating = event[event.find('PROB='):event.find('NSTAT')]
                 dating = dating[dating.find('(')+1:dating.find(')')]
-                date,time=dating.split()
+                fulldate = datetime.strptime(dating, "%d.%m.%Y  %H.%M:%S.%f")
+                # date,time=dating.split()
+                date = fulldate.strftime("%d.%m.%Y")
+                time = fulldate.strftime('%H:%M:%S.%f')[:-5]
+                # date = datetime.strptime(date, "%d.%m.%Y %H.%M:%S")
                 lat,lon = event[event.find(')')+2:event.find('PROB')].split()[:-1]
                 
                 lat,lon = float(lat.split('=')[1]), float(lon.split('=')[1])
@@ -126,9 +134,10 @@ class MainWindow(base_class):
                 AzMajor, Rminor, Rmajor = [d.split('=')[1] for d in azimuth.split()]
                 S = float(Rminor) * float(Rmajor) * pi
                 Nstat = event[event.find('NSTAT'):event.find('NPHASES')-1].split('=')[1]
-                event_log = [date,time.replace('.',':',1),round(lat,3),round(lon,3), int(depth), int(depthmin), int(depthmax), M, float(AzMajor), float(Rminor), float(Rmajor), round(S,2), int(Nstat)]
+                event_log = [date,time,round(lat,3),round(lon,3), int(depth), int(depthmin), int(depthmax), M, float(AzMajor), float(Rminor), float(Rmajor), round(S,2), int(Nstat)]
                 
                 logs.append(event_log)
+        print(logs)
         return logs
 
 
