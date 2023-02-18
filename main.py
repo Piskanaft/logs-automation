@@ -38,24 +38,28 @@ class MainWindow(base_class):
    
 
     def load_file(self, format, extenion):
-
         file_path = qtw.QFileDialog.getOpenFileName(self, 'Open File',filter=f"{format} (*.{extenion})")
-        if not file_path:
-            return None
         
-        selected_file_name = os.path.basename(file_path[0])
+        if not file_path[0]:
+            return None
+        file_path = file_path[0]
+        selected_file_name = os.path.basename(file_path)
         if format == 'Excel':
-            
             self.ui.selected_xlsx_lbl.setText(f'Excel выбран:\n{selected_file_name}')
-            self.excel_file_path = file_path[0]
+            self.excel_file_path = file_path
         else:
             self.ui.selected_txt_lbl.setText(f'Txt выбран:\n{selected_file_name}')
-            self.txt_file_path = file_path[0]
+            self.txt_file_path = file_path
+            self.events = self.parse_events()
+            self.ui.found_events_lbl.setText(f'Найдено {len(self.events)} событий')
+
+            for widget in self.ui.RightMenu.findChildren((qtw.QLabel,qtw.QPushButton,qtw.QLineEdit)):
+                widget.setEnabled(True)
+
     def write_new_button_pressed(self):
         if not hasattr(self, 'txt_file_path'):
-            print('skip')
             return None
-        logs = self.compose_logs()
+        logs = self.compose_logs_from_events()
         
         wb = Workbook()
         ws = wb.active
@@ -79,10 +83,11 @@ class MainWindow(base_class):
         if not hasattr(self, 'excel_file_path'):
             print('skip')
             return None
-        logs = self.compose_logs()
+        logs = self.compose_logs_from_events()
         logs.pop(0)
         wb = load_workbook(self.excel_file_path)
         sh = wb.active
+        
         alignment = Alignment(horizontal='center')
         end_of_old_logs = sh.max_row
         for row in sh.iter_rows(min_row = end_of_old_logs+1, max_row = len(logs) + end_of_old_logs, min_col = 3, max_col = len(logs[0])+2):
@@ -101,43 +106,42 @@ class MainWindow(base_class):
                 cell.font = bold
                 ws.column_dimensions[get_column_letter(cell.column)].width = 12
                 
-        
-        
-
-    def compose_logs(self):
-        logs = [['Date', 'Origin time', 'Lat', 'Lon', 'Depth', 'DepthMIN','DepthMAX', 'M', 'AzMajor', 'Rminor', 'Rmajor', 'S', 'N stations']]
+    def parse_events(self):
         with open(self.txt_file_path,'r',encoding='utf-8') as file:
             text = file.read()
             events = text.split('END EVENT')
             events.pop()
+        return events
+        
 
-            for event in events:
-                event_log = []
-                event = event.strip()
-                event = event[:event.find('\nAZIMUTHAL GAP')]
-                splitted = event.split('\n')
-                dating = event[event.find('PROB='):event.find('NSTAT')]
-                dating = dating[dating.find('(')+1:dating.find(')')]
-                fulldate = datetime.strptime(dating, "%d.%m.%Y  %H.%M:%S.%f")
-                # date,time=dating.split()
-                date = fulldate.strftime("%d.%m.%Y")
-                time = fulldate.strftime('%H:%M:%S.%f')[:-5]
-                # date = datetime.strptime(date, "%d.%m.%Y %H.%M:%S")
-                lat,lon = event[event.find(')')+2:event.find('PROB')].split()[:-1]
-                
-                lat,lon = float(lat.split('=')[1]), float(lon.split('=')[1])
-                depths = event[event.find('DEPTH'):]
-                
-                depth, depthmin, depthmax = [d.split('=')[1] for d in depths.split()]
-                M = ''
-                azimuth = event[event.find('ELLIPSE: ')+9:event.find('DEPTH')-1]
-                AzMajor, Rminor, Rmajor = [d.split('=')[1] for d in azimuth.split()]
-                S = float(Rminor) * float(Rmajor) * pi
-                Nstat = event[event.find('NSTAT'):event.find('NPHASES')-1].split('=')[1]
-                event_log = [date,time,round(lat,3),round(lon,3), int(depth), int(depthmin), int(depthmax), M, float(AzMajor), float(Rminor), float(Rmajor), round(S,2), int(Nstat)]
-                
-                logs.append(event_log)
-        print(logs)
+    def compose_logs_from_events(self):
+        logs = [['Date', 'Origin time', 'Lat', 'Lon', 'Depth', 'DepthMIN','DepthMAX', 'M', 'AzMajor', 'Rminor', 'Rmajor', 'S', 'N stations']]
+        
+        for event in self.events:
+            event_log = []
+            event = event.strip()
+            event = event[:event.find('\nAZIMUTHAL GAP')]
+            
+            dating = event[event.find('PROB='):event.find('NSTAT')]
+            dating = dating[dating.find('(')+1:dating.find(')')]
+            fulldate = datetime.strptime(dating, "%d.%m.%Y  %H.%M:%S.%f")
+            date = fulldate.strftime("%d.%m.%Y")
+            time = fulldate.strftime('%H:%M:%S.%f')[:-5]
+            
+            lat,lon = event[event.find(')')+2:event.find('PROB')].split()[:-1]
+            lat,lon = float(lat.split('=')[1]), float(lon.split('=')[1])
+
+            depths = event[event.find('DEPTH'):]  
+            depth, depthmin, depthmax = [d.split('=')[1] for d in depths.split()]
+            M = ''
+            azimuth = event[event.find('ELLIPSE: ')+9:event.find('DEPTH')-1]
+            AzMajor, Rminor, Rmajor = [d.split('=')[1] for d in azimuth.split()]
+            S = float(Rminor) * float(Rmajor) * pi
+            Nstat = event[event.find('NSTAT'):event.find('NPHASES')-1].split('=')[1]
+            event_log = [date,time,round(lat,3),round(lon,3), int(depth), int(depthmin), int(depthmax), M, float(AzMajor), float(Rminor), float(Rmajor), round(S,2), int(Nstat)]
+            
+            logs.append(event_log)
+        
         return logs
 
 
